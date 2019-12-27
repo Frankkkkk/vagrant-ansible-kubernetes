@@ -1,0 +1,12 @@
+run_unit_tests:
+  script:
+    - ./.run_tests.sh
+  after_script:
+    - vagrant destroy -f
+  tags:
+    - purple
+    - vagrant
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .vagrant/

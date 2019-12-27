@@ -5,6 +5,8 @@ This  repo allows you tu setup and run a full kubernetes cluster on vagrant. By 
  * Flannel networking
  * Not storage (for now)
 
+As of now, this installs kubernetes v1.17.0
+
 # Setting up the cluster
 ## Requirements
 To run this, you need the following requirements:
