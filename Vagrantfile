@@ -1,7 +1,7 @@
 # # vi: set ft=ruby :
 
 IMAGE_NAME = "ubuntu/xenial64"
-NUM_NODES = 3
+NUM_NODES = 2
 
 Vagrant.configure("2") do |config|
     config.ssh.insert_key = false
