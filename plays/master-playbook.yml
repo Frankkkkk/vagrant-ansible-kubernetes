@@ -1,0 +1,68 @@
+---
+- hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+
+  - name: Include common playbook
+    include: common.yml
+
+  - name: Install kubectl
+    apt:
+      name: kubectl
+      state: present
+
+  - name: Check if kubeconfig exists
+    stat:
+      path: /home/vagrant/.kube/config
+    register: kubeconfig
+
+  - name: Warn that cluster is already created and thus new params wont be applied
+    pause:
+      prompt: Cluster already created. New kubeadm params wont be applied
+    when: kubeconfig.stat.exists
+
+  - name: Initialize the cluster
+    block:
+    - name: Initialize the Kubernetes cluster using kubeadm
+      command: 'kubeadm init --apiserver-advertise-address="{{ node_ip }}" --apiserver-cert-extra-sans="{{ node_ip }}"  --pod-network-cidr=11.0.0.0/16 --service-cidr=11.1.0.0/24'
+
+    - name: Setup kubeconfig for vagrant user
+      command: "{{ item }}"
+      with_items:
+       - mkdir -p /home/vagrant/.kube
+       - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+       - chown vagrant:vagrant /home/vagrant/.kube/config
+
+    - name: Setup kubeconfig for root user
+      command: "{{ item }}"
+      with_items:
+       - mkdir -p /root/.kube
+       - cp -i /etc/kubernetes/admin.conf /root/.kube/config
+
+    when: not kubeconfig.stat.exists
+
+  - name: Wait kubelet api to be available
+    wait_for:
+      host=localhost
+      port=6443
+      delay=1
+      timeout=300
+
+
+  - name: Install flannel pod network
+    command: kubectl apply -f /vagrant/plays/kube-flannel.yml -v=9
+
+  - name: Generate join command for nodes
+    command: kubeadm token create --print-join-command
+    register: join_command
+
+  - name: Copy join command to shared directory
+    copy:
+      content: "{{ join_command.stdout_lines[0] }}"
+      dest: "/vagrant/join-command"
+
+  - name: Copy kubeconfig to shared directory
+    #XXX TODO fixme
+    command: 'cp /home/vagrant/.kube/config /vagrant/kubeconfig'
+

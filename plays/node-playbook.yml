@@ -1,0 +1,18 @@
+---
+- hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+  - name: Include common playbook
+    include_tasks: common.yml
+
+
+  - name: Check if kubelet.conf exists
+    stat:
+      path: /etc/kubernetes/kubelet.conf
+    register: kubeletconf
+
+  - name: Join the node to cluster
+    command: sh /vagrant/join-command
+    when: not kubeletconf.stat.exists
+
