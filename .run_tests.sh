@@ -7,7 +7,7 @@ vagrant up
 
 export KUBECONFIG=$(pwd)/kubeconfig
 
-K8S_VERSION=v1.17.0
+K8S_VERSION=v1.17.2
 
 sleep 30s #Yeah, crappy but'll do for now
 while read line; do
